@@ -63,13 +63,19 @@ extension Reactive where Base: CLLocationManager {
         let sel: Selector
         if #available(iOS 14.0, *) {
             sel = #selector(CLLocationManagerDelegate.locationManagerDidChangeAuthorization(_:))
+            // 파라미터 목록에서 CLAuthorizationStatus 목록을 뽑아낸뒤 리턴
+            return delegate.methodInvoked(sel)
+                .map { paramters in
+                    return (paramters[0] as! CLLocationManager).authorizationStatus
+                }
         } else {
             sel = #selector(CLLocationManagerDelegate.locationManager(_:didChangeAuthorization:))
+            // 파라미터 목록에서 CLAuthorizationStatus 목록을 뽑아낸뒤 리턴
+            return delegate.methodInvoked(sel)
+                .map { paramters in
+                    return CLAuthorizationStatus(rawValue: paramters[1] as! Int32) ?? .notDetermined
+                }
         }
-        // 파라미터 목록에서 CLAuthorizationStatus 목록을 뽑아낸뒤 리턴
-        return delegate.methodInvoked(sel)
-            .map { paramters in
-                return CLAuthorizationStatus(rawValue: paramters[1] as! Int32) ?? .notDetermined
-            }
+        
     }
 }
