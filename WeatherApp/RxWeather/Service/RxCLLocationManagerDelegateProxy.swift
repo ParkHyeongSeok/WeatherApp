@@ -25,3 +25,51 @@ import UIKit
 import CoreLocation
 import RxSwift
 import RxCocoa
+
+extension CLLocationManager: HasDelegate {
+    public typealias Delegate = CLLocationManagerDelegate
+}
+
+// Delegate Proxy Class
+public class RxCLLocationManagerDelegateProxy: DelegateProxy<CLLocationManager, CLLocationManagerDelegate>, DelegateProxyType, CLLocationManagerDelegate {
+    
+    public init(locationManager: CLLocationManager) {
+        super.init(parentObject: locationManager, delegateProxy: RxCLLocationManagerDelegateProxy.self)
+    }
+    
+    
+    public static func registerKnownImplementations() {
+        self.register { RxCLLocationManagerDelegateProxy(locationManager: $0) }
+    }
+}
+
+extension Reactive where Base: CLLocationManager {
+    var delegate: DelegateProxy<CLLocationManager, CLLocationManagerDelegate> {
+        return RxCLLocationManagerDelegateProxy.proxy(for: base)
+    }
+    
+    // 이 메소드가 호출되면 Observable을 통해서 파라미터 목록이 방출
+    public var didUpdateLocation: Observable<[CLLocation]> {
+        // GPS로부터 새로운 위치 정보가 전달되면 CLLocation이 전달된다.
+        let selector = #selector(CLLocationManagerDelegate.locationManager(_:didUpdateLocations:))
+        return delegate.methodInvoked(selector)
+            .map { parameters in
+                return parameters[1] as! [CLLocation]
+            }
+    }
+    
+    // 허가 상태가 변경하는 시점마다 현재 상태를 방출
+    public var didChangeAuthorizationStatus: Observable<CLAuthorizationStatus> {
+        let sel: Selector
+        if #available(iOS 14.0, *) {
+            sel = #selector(CLLocationManagerDelegate.locationManagerDidChangeAuthorization(_:))
+        } else {
+            sel = #selector(CLLocationManagerDelegate.locationManager(_:didChangeAuthorization:))
+        }
+        // 파라미터 목록에서 CLAuthorizationStatus 목록을 뽑아낸뒤 리턴
+        return delegate.methodInvoked(sel)
+            .map { paramters in
+                return CLAuthorizationStatus(rawValue: paramters[1] as! Int32) ?? .notDetermined
+            }
+    }
+}
