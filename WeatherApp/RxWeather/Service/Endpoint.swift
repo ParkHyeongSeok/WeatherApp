@@ -26,7 +26,9 @@ import Foundation
 import CoreLocation
 import RxSwift
 
+// 현재 날씨 URL
 let summaryEndpoint = "https://api.openweathermap.org/data/2.5/weather"
+// 예보 날씨 URL
 let forecastEndpoint = "https://api.openweathermap.org/data/2.5/forecast"
 
 func composeUrlRequest(endpoint: String, from location: CLLocation) -> Observable<URLRequest> {

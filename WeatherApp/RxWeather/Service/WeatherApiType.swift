@@ -26,5 +26,6 @@ import CoreLocation
 import RxSwift
 
 protocol WeatherApiType {
-    
+    // 위치를 받아서 (현재 날씨, [날씨 예보]) 튜플를 방출하는 Observable 리턴
+    func fetch(location: CLLocation) -> Observable<(WeatherDataType?, [WeatherDataType])>
 }
