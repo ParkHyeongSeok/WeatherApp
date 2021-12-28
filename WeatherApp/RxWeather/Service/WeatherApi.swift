@@ -63,7 +63,7 @@ class OpenWeatherMapApi: NSObject, WeatherApiType {
     }
     
     private func fetchForecast(location: CLLocation) -> Observable<[WeatherDataType]> {
-        let request = composeUrlRequest(endpoint: summaryEndpoint, from: location)
+        let request = composeUrlRequest(endpoint: forecastEndpoint, from: location)
         return request
             .flatMap { self.urlSession.rx.data(request: $0) }
             .map { data -> [WeatherData] in

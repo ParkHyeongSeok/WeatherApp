@@ -86,8 +86,6 @@ class MainViewModel: HasDisposeBag {
         return ds
     }()
     
-    
-    
     static let tempFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.minimumFractionDigits = 0
