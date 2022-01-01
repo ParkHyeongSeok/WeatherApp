@@ -25,14 +25,6 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-
-extension UIViewController {
-    var sceneViewController: UIViewController {
-        return self.children.first ?? self
-    }
-}
-
-
 class SceneCoordinator: SceneCoordinatorType {
     private let bag = DisposeBag()
     
