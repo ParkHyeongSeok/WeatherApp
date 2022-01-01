@@ -30,22 +30,53 @@ import NSObject_Rx
 
 typealias SectionModel = AnimatableSectionModel<Int, WeatherData>
 
-class MainViewModel: HasDisposeBag {
-  
-    // 주소
-    let title: BehaviorRelay<String>
+class MainViewModel: HasDisposeBag, ViewModelType {
     
+    struct Input {
+        let query = PublishSubject<String>()
+        let searchButtonClicked = PublishSubject<Void>()
+    }
+    
+    struct Output {
+        // 주소
+        let title = BehaviorRelay<String>(value: "강남역")
+        // 항상 테이블뷰와 바인딩 -> Driver
+        var weatherData = BehaviorRelay<[SectionModel]>(value: [])
+    }
+    
+    var input: Input
+    var output: Output
+  
     let sceneCoordinator: SceneCoordinatorType
     let weatherApi: WeatherApiType
     let locationProvider: LocationProviderType
     
-    // 항상 테이블뷰와 바인딩 -> Driver
-    var weatherData: Driver<[SectionModel]> {
-        return locationProvider.currentLocation()
+    init(sceneCoordinator: SceneCoordinatorType, weatherApi: WeatherApiType, locationProvider: LocationProviderType) {
+        self.sceneCoordinator = sceneCoordinator
+        self.weatherApi = weatherApi
+        self.locationProvider = locationProvider
+        self.input = Input()
+        self.output = Output()
+        
+        Observable.merge(
+            input.searchButtonClicked
+                .withLatestFrom(input.query),
+            locationProvider.currentAddress())
+            .bind(to: output.title)
+            .disposed(by: disposeBag)
+        
+        let queryResult = input.searchButtonClicked
+            .withLatestFrom(input.query)
+            .flatMap { [unowned self] in
+                self.weatherApi.fetch(region: $0)
+            }
+        
+        let locationResult = locationProvider.currentLocation()
             .flatMap { [unowned self] in
                 self.weatherApi.fetch(location: $0)
-                    .asDriver(onErrorJustReturn: (nil, [WeatherDataType]()))
             }
+        
+        Observable.merge(queryResult, locationResult)
             .map { (summary, forecast) in
                 var summaryList = [WeatherData]()
                 if let summary = summary as? WeatherData {
@@ -56,17 +87,7 @@ class MainViewModel: HasDisposeBag {
                     SectionModel(model: 1, items: forecast as! [WeatherData])
                 ]
             }
-            .asDriver(onErrorJustReturn: [])
-    }
-    
-    init(title: String, sceneCoordinator: SceneCoordinatorType, weatherApi: WeatherApiType, locationProvider: LocationProviderType) {
-        self.title = BehaviorRelay(value: title)
-        self.sceneCoordinator = sceneCoordinator
-        self.weatherApi = weatherApi
-        self.locationProvider = locationProvider
-        
-        locationProvider.currentAddress()
-            .bind(to: self.title)
+            .bind(to: output.weatherData)
             .disposed(by: disposeBag)
     }
     
@@ -89,8 +110,7 @@ class MainViewModel: HasDisposeBag {
     static let tempFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 1
-        
+        formatter.maximumFractionDigits = 0
         return formatter
     }()
     

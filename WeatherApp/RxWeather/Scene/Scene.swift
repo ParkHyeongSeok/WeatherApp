@@ -34,7 +34,7 @@ extension Scene {
         
         switch self {
         case .main(let viewModel):
-            guard var vc = storyboard.instantiateViewController(withIdentifier: "MainVC") as? ViewController else {
+            guard var vc = storyboard.instantiateViewController(withIdentifier: "MainVC") as? MainViewController else {
                 fatalError()
             }
             

@@ -33,7 +33,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let sceneCoordinator = SceneCoordinator(window: window!)
         let weatherApi = OpenWeatherMapApi()
         let locationProvider = CoreLocationProvider()
-        let viewModel = MainViewModel(title: "", sceneCoordinator: sceneCoordinator, weatherApi: weatherApi, locationProvider: locationProvider)
+        let viewModel = MainViewModel(sceneCoordinator: sceneCoordinator, weatherApi: weatherApi, locationProvider: locationProvider)
         let scene = Scene.main(viewModel)
         sceneCoordinator.transition(to: scene, using: .root, animated: false)
     }

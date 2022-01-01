@@ -21,7 +21,6 @@
 //  THE SOFTWARE.
 //
 
-
 import Foundation
 
 enum TransitionStyle {
@@ -29,7 +28,6 @@ enum TransitionStyle {
     case push
     case modal
 }
-
 
 enum TransitionError: Error {
     case navigationControllerMissing
